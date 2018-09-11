@@ -1,0 +1,72 @@
+#########################################################################
+# Tools and flags
+#########################################################################
+
+ARCH				= x86-mingw32
+START               = x86-mingw64
+include $(DSB_ROOT)/common/lib/platform.mk
+
+INSTALL_DIR 		= ./ads2
+SCADE_MODEL_LIBDIR 	= ./Simulation
+ADSSCADE_LIBDIR 	= E:\ADS2SCADE\lib
+PACKAGE				= DCP_L
+MODEL_LIB			= $(PACKAGE)
+SCADE_VER			= R16
+GRAPH_LIB			= SDY1_$(PACKAGE)
+
+#########################################################################
+# Sources & objects
+#########################################################################
+PROG		 = $(PACKAGE)
+CFLAGS 		 += -g
+CFLAGS_EXTRA +=
+LIBS_APP 	 = -L$(ADSSCADE_LIBDIR) -L$(SCADE_MODEL_LIBDIR) -l$(MODEL_LIB) -ladsc
+LIBS_EXTRA 	 = $(LIBS) -lpthreadGC2
+
+#############################################################################
+# Targets
+#############################################################################
+
+all::$(PROG)$(E)
+	#Copy DLLs
+	$(CP) $(SCADE_MODEL_LIBDIR)/$(MODEL_LIB).dll .
+	$(CP) $(SCADE_MODEL_LIBDIR)/$(GRAPH_LIB).dll .
+$(PROG)$(E):
+	$(CC)  $(CFLAGS) $(CFLAGS_EXTRA) $(LIBS_APP) $(LIBS_EXTRA)  -o $(PROG)$(E)
+	
+clean::
+	$(RM) $(INSTALL_DIR)/$(PROG)$(E) $(PROG)$(E)
+	$(RM) $(INSTALL_DIR)/$(PROG).cvt
+	$(RM) $(INSTALL_DIR)/$(PROG).cmp
+	$(RM) $(INSTALL_DIR)/$(MODEL_LIB).dll
+	$(RM) $(INSTALL_DIR)/$(GRAPH_LIB).dll
+	$(RM) $(INSTALL_DIR)/$(MODEL_LIB).zip
+	$(RM) $(INSTALL_DIR)/pthreadGC2.dll
+	$(RM) $(MODEL_LIB).dll
+	$(RM) pthreadGC2.dll
+
+install :: $(PROG)$(E)
+	$(CP) $(SCADE_MODEL_LIBDIR)/$(MODEL_LIB).dll ./
+	$(CP) $(ADSSCADE_LIBDIR)/pthreadGC2.dll ./
+	#Generate start.ini
+	echo -e "[$(START)]\r" >start.ini
+	echo -e "run=$(PROG)$(E) -n $(PROG) -V $(SCADE_VER)" >>start.ini
+	#Generate .zip
+	ads2 zip $(PROG) $(PROG)$(E) $(MODEL_LIB).dll $(GRAPH_LIB).dll start.ini pthreadGC2.dll
+	$(RM) start.ini	
+	#Generate CVT
+	./$(PROG)$(E) -n $(PROG) -g -V $(SCADE_VER)
+	
+	#Generate CMP
+	echo "CVTS{CVTLIST={{CVT=\"$(PROG)\";}}}IFREAL{IOMAPLIST={}}IFSIM{SIMULATIONS={SIMULATION{NAME=\"\";PROGRAM=\"$(PROG).zip\";RATE=\"1\";OFFSET=\"0\";SUBFRAME=\"0\";LENGTH=\"0\";ARGUMENTS=\"-n $(PROG)\";OPTIONS=\"none\";LOOPS=\"1\";}}}" >$(PROG).cmp
+	$(CP) $(MODEL_LIB).dll $(INSTALL_DIR)
+	$(CP) pthreadGC2.dll $(INSTALL_DIR)
+	$(CP) $(PROG).cvt $(INSTALL_DIR)
+	$(CP) $(PROG).cmp $(INSTALL_DIR)
+	$(CP) $(PROG)$(E) $(INSTALL_DIR)
+	$(CP) $(PROG).zip $(INSTALL_DIR)
+	$(RM) $(PROG).cvt
+	$(RM) $(PROG).cmp
+	$(RM) $(MODEL_LIB).dll
+	$(RM) pthreadGC2.dll
+	$(RM) $(PROG)$(E)
