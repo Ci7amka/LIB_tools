@@ -9,7 +9,7 @@ include $(DSB_ROOT)/common/lib/platform.mk
 INSTALL_DIR 		= ./ads2
 SCADE_MODEL_LIBDIR 	= ./Simulation
 ADSSCADE_LIBDIR 	= E:\ADS2SCADE\lib
-PACKAGE				= DCP_L
+PACKAGE				= DU_IL
 MODEL_LIB			= $(PACKAGE)
 SCADE_VER			= R16
 GRAPH_LIB			= SDY1_$(PACKAGE)
@@ -46,6 +46,8 @@ clean::
 	$(RM) pthreadGC2.dll
 
 install :: $(PROG)$(E)
+	#Create install dir
+	mkdir -p $(INSTALL_DIR)
 	$(CP) $(SCADE_MODEL_LIBDIR)/$(MODEL_LIB).dll ./
 	$(CP) $(ADSSCADE_LIBDIR)/pthreadGC2.dll ./
 	#Generate start.ini
@@ -70,3 +72,7 @@ install :: $(PROG)$(E)
 	$(RM) $(MODEL_LIB).dll
 	$(RM) pthreadGC2.dll
 	$(RM) $(PROG)$(E)
+	$(RM) $(INSTALL_DIR)/$(MODEL_LIB).dll
+	$(RM) $(INSTALL_DIR)/$(GRAPH_LIB).dll
+	$(RM) $(INSTALL_DIR)/pthreadGC2.dll
+	$(RM) $(INSTALL_DIR)/$(PROG)$(E)
